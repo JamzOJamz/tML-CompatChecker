@@ -1,0 +1,38 @@
+Configs: {
+	CompatConfig: {
+		DisplayName: Client Settings
+
+		DrawEnabledModListOnMainMenu: {
+			Label: Show Enabled Mods List on Main Menu
+			Tooltip: If toggled, a list of enabled mods will be shown on the main menu.
+		}
+
+		ShowRecommendedFixes: {
+			Label: Recommend Compatibility Mods
+			Tooltip: Shows the names of suggested mods to fix compatibility issues found by the checker.
+		}
+
+		DisplayGitHubIssues: {
+			Label: Display GitHub Issues
+			Tooltip:
+				'''
+				Whether to list relevant GitHub issues related to detected compatibility problems.
+				[c/F2A754:For mod developers and more technical users]
+				'''
+		}
+
+		ListLocalMods: {
+			Label: List Local Mods
+			Tooltip:
+				'''
+				Toggles the display of local mods (mods not from the Steam Workshop) in the checker.
+				[c/F2A754:For mod developers and more technical users]
+				'''
+		}
+
+		Headers: {
+			Preferences: Preferences
+			DeveloperOptions: Developer Options
+		}
+	}
+}
