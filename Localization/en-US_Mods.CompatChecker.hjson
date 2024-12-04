@@ -25,14 +25,20 @@ Configs: {
 			Label: List Local Mods
 			Tooltip:
 				'''
-				Toggles the display of local mods (mods not from the Steam Workshop) in the checker.
+				Toggles the display of local mods (mods not from the Steam Workshop) in the Mods List UI.
 				[c/F2A754:For mod developers and more technical users]
 				'''
 		}
 
 		Headers: {
 			Preferences: Preferences
-			DeveloperOptions: Developer Options
+			DeveloperOptions: Developer Options [c/F2A754:(Advanced)]
+			Checks: Enabled Checks
+		}
+
+		CheckMultiplayerCompat: {
+			Label: Multiplayer Support
+			Tooltip: Checks if mods are compatible with multiplayer.
 		}
 	}
 }

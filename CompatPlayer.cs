@@ -10,3 +10,4 @@ public class CompatPlayer : ModPlayer
         Main.NewText($"{CompatSystem.CompatibilityData}");
     }
 }*/
+

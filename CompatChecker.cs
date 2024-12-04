@@ -43,7 +43,7 @@ public class CompatChecker : Mod
                 DrawInModsMenu(menucolor);
             return;
         }
-        
+
         var hasOverhaul = ModLoader.HasMod("TerrariaOverhaul");
         var enabledModsMessage =
             Language.GetTextValue("tModLoader.MenuModsEnabled", Math.Max(0, ModLoader.Mods.Length - 1)) + " \u2611";
@@ -100,7 +100,7 @@ public class CompatChecker : Mod
         }
 
         DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, enabledModsMessage, drawPos,
-            menucolor, 0f, Vector2.Zero, 1.02f, SpriteEffects.None, 0f, true);
+            menucolor, 0f, Vector2.Zero, 1.02f, SpriteEffects.None, 0f, true, 0.375f);
 
         /*DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value,
             DisplayNameClean, drawPos, Color.White, 0f, Vector2.Zero, 1.11f,
@@ -251,10 +251,9 @@ public class CompatChecker : Mod
         // Draw "Back to Main Menu" button in top right
         var anyModsNeedReload = Interface.modsMenu.items.Any(i => i.NeedsReload);
         const string backToMainMenuText = "Back to Main Menu";
-        var backToMainMenuTextSize = FontAssets.MouseText.Value.MeasureString(backToMainMenuText);
-        var backToMainMenuHovered = Main.MouseScreen.Between(
-            new Vector2(Main.screenWidth - 9 - backToMainMenuTextSize.X, 12),
-            new Vector2(Main.screenWidth - 18, 12 + backToMainMenuTextSize.Y));
+        var backToMainMenuTextSize = FontAssets.MouseText.Value.MeasureString(backToMainMenuText) + new Vector2(5, 0);
+        var topRightDrawPos = new Vector2(Main.screenWidth - 18 - backToMainMenuTextSize.X, 12);
+        var backToMainMenuHovered = Main.MouseScreen.Between(topRightDrawPos, topRightDrawPos + backToMainMenuTextSize);
         if (backToMainMenuHovered)
         {
             Main.LocalPlayer.mouseInterface = true;
@@ -299,22 +298,24 @@ public class CompatChecker : Mod
         }
 
         DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, backToMainMenuText,
-            new Vector2(Main.screenWidth - 18 - backToMainMenuTextSize.X, 12),
+            topRightDrawPos,
             backToMainMenuHovered ? Color.Yellow : menucolor, 0f, Vector2.Zero, 1.05f,
-            SpriteEffects.None, 0f, !backToMainMenuHovered);
+            SpriteEffects.None, 0f, !backToMainMenuHovered, 0.375f);
 
         // Draw note and button to help contribute to the compatibility data project
         var bottomDrawPos = new Vector2(9, Main.screenHeight - 35);
 
-        const string helpContributeButton = "Click to Help Contribute Data";
+        const string helpContributeButton = "Click to Help Contribute Data \u26ec";
         var helpContributeButtonSize = FontAssets.MouseText.Value.MeasureString(helpContributeButton);
-        if (Main.MouseScreen.Between(bottomDrawPos, bottomDrawPos + helpContributeButtonSize))
+        var helpHovered = Main.MouseScreen.Between(bottomDrawPos, bottomDrawPos + helpContributeButtonSize);
+        if (helpHovered)
         {
             Main.LocalPlayer.mouseInterface = true;
             if (!_lastHoveringHelpContributeButton)
                 SoundEngine.PlaySound(SoundID.MenuTick);
             _fakeItem.SetDefaults(0, true);
             _fakeItem.SetNameOverride("Found an error or missing info? Help us fix it!");
+            _fakeItem.ToolTip = new ItemTooltip($"[c/7F8CFF:{DiscordURL}]");
             _fakeItem.type = ItemID.IronPickaxe;
             _fakeItem.scale = 0f;
             _fakeItem.value = -1;
@@ -343,9 +344,10 @@ public class CompatChecker : Mod
         }
 
         DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value,
-            helpContributeButton, bottomDrawPos, new Color(244, 255, 0), 0f, Vector2.Zero, 1f,
+            helpContributeButton, bottomDrawPos, helpHovered ? new Color(244, 255, 0) : Color.LightGray, 0f,
+            Vector2.Zero, 1f,
             SpriteEffects.None, 0f, alphaMult: 0.5f);
-        var smallWidthRes = Main.screenWidth < 1760;
+        var smallWidthRes = Main.screenWidth < 1780;
         bottomDrawPos.Y -= smallWidthRes ? 59 : 31;
 
         var noteText = smallWidthRes
@@ -356,138 +358,238 @@ public class CompatChecker : Mod
             Vector2.Zero, 1f,
             SpriteEffects.None, 0f, true, 0.5f);
 
-        if (CompatSystem.CompatibilityData == null || Interface.modsMenu.loading || anyModsNeedReload) // Loading state
+        if (CompatSystem.CompatibilityData == null || !string.IsNullOrEmpty(CompatSystem.RequestError) ||
+            Interface.modsMenu.loading || anyModsNeedReload) // Loading state
         {
-            var dots = new string('.', (int)(Main.timeForVisualEffects / 20 % 4));
-            var doingThing = CompatSystem.CompatibilityData != null && anyModsNeedReload
-                ? "Reload Required"
-                : "Loading";
-            DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, doingThing + dots, drawPos,
-                Color.LightGray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
+            if (!string.IsNullOrEmpty(CompatSystem.RequestError))
+            {
+                DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, CompatSystem.RequestError,
+                    drawPos,
+                    menucolor * 0.8f, 0f, Vector2.Zero, 1.02f, SpriteEffects.None, 0f, true);
+            }
+            else
+            {
+                var dots = new string('.', (int)(Main.timeForVisualEffects / 20 % 4));
+                var doingThing = CompatSystem.CompatibilityData != null && anyModsNeedReload
+                    ? "Reload Required"
+                    : "Loading";
+                DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, doingThing + dots, drawPos,
+                    Color.LightGray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
+            }
         }
         else
         {
+            var compatConfig = ModContent.GetInstance<CompatConfig>();
             var data = CompatSystem.CompatibilityData;
-            var clientSideMods = ModLoader.Mods.Where(mod => mod.Side == ModSide.Client).ToArray();
-            var verifiedMultiplayerSupportMods = data.Individual.MPCompatible;
-            // Calculate the full verified multiplayer support nids, which should be the verified multiplayer support mods plus any client side mods NOT in the verified list
-            var fullVerifiedMultiplayerSupportIDs = verifiedMultiplayerSupportMods.Select(x => x.ModID).ToList();
-            foreach (var mod in clientSideMods)
-            {
-                if (!CompatSystem.ModIDByName.TryGetValue(mod.Name, out var modId)) continue;
-                if (verifiedMultiplayerSupportMods.Any(x => x.ModID == modId)) continue;
-                fullVerifiedMultiplayerSupportIDs.Add(modId);
-            }
 
-            var fullVerifiedMultiplayerSupportMods =
-                fullVerifiedMultiplayerSupportIDs.Select(x => CompatSystem.LocalModByID[x]).OrderBy(x => x.DisplayName)
-                    .ToArray();
-            var verifiedMultiplayerSupportCount = fullVerifiedMultiplayerSupportMods.Length;
-            if (verifiedMultiplayerSupportCount > 0)
+            if (compatConfig.CheckMultiplayerCompat)
             {
-                var verifiedMultiplayerSupportMessage =
-                    $"{verifiedMultiplayerSupportCount} Mod(s) Verified Multiplayer Compatible \u2713";
-                var verifiedMultiplayerSupportMessageSize =
-                    FontAssets.MouseText.Value.MeasureString(verifiedMultiplayerSupportMessage);
-                if (Main.MouseScreen.Between(drawPos, drawPos + verifiedMultiplayerSupportMessageSize))
+                var clientSideMods = ModLoader.Mods.Where(mod => mod.Side == ModSide.Client).ToArray();
+                var verifiedMultiplayerSupportMods = data.Individual.MPCompatible;
+                // Calculate the full verified multiplayer support nids, which should be the verified multiplayer support mods plus any client side mods NOT in the verified list
+                var fullVerifiedMultiplayerSupportIDs = verifiedMultiplayerSupportMods.Select(x => x.ModID).ToList();
+                foreach (var mod in clientSideMods)
                 {
-                    Main.LocalPlayer.mouseInterface = true;
-                    _fakeItem.SetDefaults(0, true);
-                    const string textValue = "[c/FFFFFF:Multiplayer Compatible Mods]";
-                    var tooltipValue = "";
-                    foreach (var localMod in fullVerifiedMultiplayerSupportMods)
-                    {
-                        var val = $"• {localMod.DisplayName} v{localMod.Version}";
-                        var mpCompat = CompatSystem.ModIDByName.TryGetValue(localMod.Name, out var modId)
-                            ? data.Individual.MPCompatible.FirstOrDefault(x => x.ModID == modId)
-                            : null;
-                        if (mpCompat != null && !string.IsNullOrEmpty(mpCompat.Note))
-                            val += " — [c/99E550:" + mpCompat.Note + "]";
-                        tooltipValue += val + "\n";
-                    }
-
-                    _fakeItem.SetNameOverride(textValue);
-                    _fakeItem.ToolTip = new ItemTooltip(tooltipValue);
-                    _fakeItem.type = ItemID.IronPickaxe;
-                    _fakeItem.scale = 0f;
-                    _fakeItem.rare = ItemRarityID.Yellow;
-                    _fakeItem.value = -1;
-                    Main.HoverItem = _fakeItem;
-                    Main.instance.MouseText("");
-                    Main.mouseText = true;
+                    if (!CompatSystem.ModIDByName.TryGetValue(mod.Name, out var modId)) continue;
+                    if (verifiedMultiplayerSupportMods.Any(x => x.ModID == modId)) continue;
+                    fullVerifiedMultiplayerSupportIDs.Add(modId);
                 }
 
-                DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value,
-                    verifiedMultiplayerSupportMessage, drawPos,
-                    new Color(153, 229, 80), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
-                drawPos.Y += 32;
-            }
-
-            var unstableInMultiplayerCount = data.Individual.MPUnstable.Length;
-            if (unstableInMultiplayerCount > 0)
-            {
-                var unstableInMultiplayerMessage =
-                    $"{unstableInMultiplayerCount} Mod(s) Unstable in Multiplayer \u26a0";
-                var unstableInMultiplayerMessageSize =
-                    FontAssets.MouseText.Value.MeasureString(unstableInMultiplayerMessage);
-                if (Main.MouseScreen.Between(drawPos, drawPos + unstableInMultiplayerMessageSize))
+                var fullVerifiedMultiplayerSupportMods =
+                    fullVerifiedMultiplayerSupportIDs.Select(x => CompatSystem.LocalModByID[x])
+                        .OrderBy(x => x.DisplayName)
+                        .ToArray();
+                var verifiedMultiplayerSupportCount = fullVerifiedMultiplayerSupportMods.Length;
+                if (verifiedMultiplayerSupportCount > 0)
                 {
-                    Main.LocalPlayer.mouseInterface = true;
-                    _fakeItem.SetDefaults(0, true);
-                    const string textValue = "[c/FFFFFF:Mods Unstable in Multiplayer]";
-                    var tooltipValue = "";
-                    foreach (var mod in data.Individual.MPUnstable)
+                    var verifiedMultiplayerSupportMessage =
+                        $"{verifiedMultiplayerSupportCount} Mod(s) Verified Multiplayer Compatible \u2713";
+                    var verifiedMultiplayerSupportMessageSize =
+                        FontAssets.MouseText.Value.MeasureString(verifiedMultiplayerSupportMessage);
+                    if (Main.MouseScreen.Between(drawPos, drawPos + verifiedMultiplayerSupportMessageSize))
                     {
-                        var localMod = CompatSystem.LocalModByID[mod.ModID];
-                        var val = $"• {localMod.DisplayName} v{localMod.Version}";
-                        if (!string.IsNullOrEmpty(mod.Note)) val += " — [c/F2A754:" + mod.Note + "]";
-                        if (mod.IssueIDs is { Length: > 0 })
+                        Main.LocalPlayer.mouseInterface = true;
+                        _fakeItem.SetDefaults(0, true);
+                        const string textValue = "[c/FFFFFF:Multiplayer Compatible Mods]";
+                        var tooltipValue = "";
+                        foreach (var localMod in fullVerifiedMultiplayerSupportMods)
                         {
-                            val += "\n  [c/BDB8C4:- Relevant GitHub Issues: ";
-                            foreach (var issueID in mod.IssueIDs) val += "#" + issueID + ", ";
-                            val = val[..^2];
-                            val += $" ({data.Extra.GithubInfo.First(x => x.ModID == mod.ModID).Repo})]";
+                            var val = $"• {localMod.DisplayName} v{localMod.Version}";
+                            var mpCompat = CompatSystem.ModIDByName.TryGetValue(localMod.Name, out var modId)
+                                ? data.Individual.MPCompatible.FirstOrDefault(x => x.ModID == modId)
+                                : null;
+                            if (mpCompat != null && !string.IsNullOrEmpty(mpCompat.Note))
+                                val += " — [c/99E550:" + mpCompat.Note + "]";
+                            tooltipValue += val + "\n";
                         }
 
-                        tooltipValue += val + "\n";
+                        _fakeItem.SetNameOverride(textValue);
+                        _fakeItem.ToolTip = new ItemTooltip(tooltipValue);
+                        _fakeItem.type = ItemID.IronPickaxe;
+                        _fakeItem.scale = 0f;
+                        _fakeItem.rare = ItemRarityID.Yellow;
+                        _fakeItem.value = -1;
+                        Main.HoverItem = _fakeItem;
+                        Main.instance.MouseText("");
+                        Main.mouseText = true;
                     }
 
-                    _fakeItem.SetNameOverride(textValue);
-                    _fakeItem.ToolTip = new ItemTooltip(tooltipValue);
-                    _fakeItem.type = ItemID.IronPickaxe;
-                    _fakeItem.scale = 0f;
-                    _fakeItem.rare = ItemRarityID.Yellow;
-                    _fakeItem.value = -1;
-                    Main.HoverItem = _fakeItem;
-                    Main.instance.MouseText("");
-                    Main.mouseText = true;
+                    DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value,
+                        verifiedMultiplayerSupportMessage, drawPos,
+                        new Color(153, 229, 80), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
+                    drawPos.Y += 32;
                 }
 
-                DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, unstableInMultiplayerMessage,
-                    drawPos,
-                    new Color(242, 167, 84), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
-                drawPos.Y += 32;
+                var unstableInMultiplayerCount = data.Individual.MPUnstable.Length;
+                if (unstableInMultiplayerCount > 0)
+                {
+                    var unstableInMultiplayerMessage =
+                        $"{unstableInMultiplayerCount} Mod(s) Unstable in Multiplayer \u26a0";
+                    var unstableInMultiplayerMessageSize =
+                        FontAssets.MouseText.Value.MeasureString(unstableInMultiplayerMessage);
+                    if (Main.MouseScreen.Between(drawPos, drawPos + unstableInMultiplayerMessageSize))
+                    {
+                        Main.LocalPlayer.mouseInterface = true;
+                        _fakeItem.SetDefaults(0, true);
+                        const string textValue = "[c/FFFFFF:Mods Unstable in Multiplayer]";
+                        var tooltipValue = "";
+                        foreach (var mod in data.Individual.MPUnstable)
+                        {
+                            var localMod = CompatSystem.LocalModByID[mod.ModID];
+                            var val = $"• {localMod.DisplayName} v{localMod.Version}";
+                            if (!string.IsNullOrEmpty(mod.Note)) val += " — [c/F2A754:" + mod.Note + "]";
+                            if (compatConfig.ShowRecommendedFixes && mod.FixMods is { Length: > 0 })
+                            {
+                                val += "\n  [c/BDB8C4:- Recommended Compatibility Add-ons: ";
+                                foreach (var fixModName in mod.FixMods) val += fixModName + ", ";
+                                val = val[..^2];
+                                val += "]";
+                            }
+
+                            if (compatConfig.DisplayGitHubIssues && mod.IssueIDs is { Length: > 0 })
+                            {
+                                val += "\n  [c/BDB8C4:- Relevant GitHub Issues: ";
+                                foreach (var issueID in mod.IssueIDs) val += "#" + issueID + ", ";
+                                val = val[..^2];
+                                val += $" ({data.Extra.GithubInfo.First(x => x.ModID == mod.ModID).Repo})]";
+                            }
+
+                            tooltipValue += val + "\n";
+                        }
+
+                        _fakeItem.SetNameOverride(textValue);
+                        _fakeItem.ToolTip = new ItemTooltip(tooltipValue);
+                        _fakeItem.type = ItemID.IronPickaxe;
+                        _fakeItem.scale = 0f;
+                        _fakeItem.rare = ItemRarityID.Yellow;
+                        _fakeItem.value = -1;
+                        Main.HoverItem = _fakeItem;
+                        Main.instance.MouseText("");
+                        Main.mouseText = true;
+                    }
+
+                    DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, unstableInMultiplayerMessage,
+                        drawPos,
+                        new Color(242, 167, 84), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
+                    drawPos.Y += 32;
+                }
+
+                var incompatibleMultiplayerCount = data.Individual.MPIncompatible.Length;
+                if (incompatibleMultiplayerCount > 0)
+                {
+                    var incompatibleMultiplayerMessage =
+                        $"{incompatibleMultiplayerCount} Mod(s) Known Multiplayer Incompatible \u2718";
+                    var incompatibleMultiplayerMessageSize =
+                        FontAssets.MouseText.Value.MeasureString(incompatibleMultiplayerMessage);
+                    if (Main.MouseScreen.Between(drawPos, drawPos + incompatibleMultiplayerMessageSize))
+                    {
+                        Main.LocalPlayer.mouseInterface = true;
+                        _fakeItem.SetDefaults(0, true);
+                        const string textValue = "[c/FFFFFF:Muliplayer Incompatible Mods]";
+                        var tooltipValue = "";
+                        foreach (var mod in data.Individual.MPIncompatible)
+                        {
+                            var localMod = CompatSystem.LocalModByID[mod.ModID];
+                            var val = $"• {localMod.DisplayName} v{localMod.Version}";
+                            if (!string.IsNullOrEmpty(mod.Note)) val += " — [c/EF4545:" + mod.Note + "]";
+                            if (compatConfig.ShowRecommendedFixes && mod.FixMods is { Length: > 0 })
+                            {
+                                val += "\n  [c/BDB8C4:- Recommended Add-ons: ";
+                                foreach (var fixModName in mod.FixMods) val += fixModName + ", ";
+                                val = val[..^2];
+                                val += "]";
+                            }
+
+                            if (mod.IssueIDs is { Length: > 0 })
+                            {
+                                val += "\n  [c/BDB8C4:- Relevant GitHub Issues: ";
+                                foreach (var issueID in mod.IssueIDs) val += "#" + issueID + ", ";
+                                val = val[..^2];
+                                val += $" ({data.Extra.GithubInfo.First(x => x.ModID == mod.ModID).Repo})]";
+                            }
+
+                            tooltipValue += val + "\n";
+                        }
+
+                        _fakeItem.SetNameOverride(textValue);
+                        _fakeItem.ToolTip = new ItemTooltip(tooltipValue);
+                        _fakeItem.type = ItemID.IronPickaxe;
+                        _fakeItem.scale = 0f;
+                        _fakeItem.rare = ItemRarityID.Yellow;
+                        _fakeItem.value = -1;
+                        Main.HoverItem = _fakeItem;
+                        Main.instance.MouseText("");
+                        Main.mouseText = true;
+                    }
+
+                    DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value,
+                        incompatibleMultiplayerMessage,
+                        drawPos,
+                        new Color(239, 69, 69), 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
+                    drawPos.Y += 32;
+                }
             }
 
-            var potentialIssuesCount = data.Individual.MPUnstable.Length + data.Individual.MPIncompatible.Length;
+            var potentialIssuesCount = compatConfig.CheckMultiplayerCompat
+                ? data.Individual.MPUnstable.Length + data.Individual.MPIncompatible.Length
+                : 0;
             var potentialIssuesMessage = potentialIssuesCount > 0
                 ? $"{potentialIssuesCount} Potential Issue(s) \u2757"
-                : "No Issues Detected! \u2713";
-            //var potentialIssuesMessageSize = FontAssets.MouseText.Value.MeasureString(potentialIssuesMessage);
+                : compatConfig.CheckMultiplayerCompat
+                    ? "No Issues Detected! \u2713"
+                    : "No Checks Enabled — See Config";
+            var potentialIssuesMessageSize = FontAssets.MouseText.Value.MeasureString(potentialIssuesMessage);
+            if (compatConfig.CheckMultiplayerCompat &&
+                Main.MouseScreen.Between(drawPos, drawPos + potentialIssuesMessageSize))
+            {
+                Main.LocalPlayer.mouseInterface = true;
+                _fakeItem.SetDefaults(0, true);
+                const string textValue = "[c/FFFFFF:Checking] [c/BDB8C4:Multiplayer Support]";
+                _fakeItem.SetNameOverride(textValue);
+                _fakeItem.type = ItemID.IronPickaxe;
+                _fakeItem.scale = 0f;
+                _fakeItem.value = -1;
+                Main.HoverItem = _fakeItem;
+                Main.instance.MouseText("");
+                Main.mouseText = true;
+            }
+
             //var drawPositives = Main.MouseScreen.Between(drawPos, drawPos + potentialIssuesMessageSize);
             DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, potentialIssuesMessage, drawPos,
                 Color.LightGray, 0f, Vector2.Zero, 1f,
                 SpriteEffects.None, 0f, alphaMult: 0.55f);
             drawPos.Y += 32;
 
-            if (!ModContent.GetInstance<CompatConfig>().ListLocalMods) return;
+            if (!compatConfig.ListLocalMods) return;
 
             var localModsCount = ModLoader.Mods.Length - 1 - CompatSystem.WorkshopModNames.Count;
             if (localModsCount > 0)
             {
                 var localModsMessage = $"No Data for {localModsCount} Local Mod(s) \u2753";
                 var localModsMessageSize = FontAssets.MouseText.Value.MeasureString(localModsMessage);
-                if (Main.MouseScreen.Between(drawPos, drawPos + localModsMessageSize))
+                var bottomRightDrawPos =
+                    new Vector2(Main.screenWidth - 9 - localModsMessageSize.X, Main.screenHeight - 35);
+                if (Main.MouseScreen.Between(bottomRightDrawPos, bottomRightDrawPos + localModsMessageSize))
                 {
                     Main.LocalPlayer.mouseInterface = true;
                     _fakeItem.SetDefaults(0, true);
@@ -505,16 +607,15 @@ public class CompatChecker : Mod
                     _fakeItem.ToolTip = new ItemTooltip(tooltipValue);
                     _fakeItem.type = ItemID.IronPickaxe;
                     _fakeItem.scale = 0f;
-                    _fakeItem.rare = ItemRarityID.Yellow;
                     _fakeItem.value = -1;
                     Main.HoverItem = _fakeItem;
                     Main.instance.MouseText("");
                     Main.mouseText = true;
                 }
 
-                DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, localModsMessage, drawPos,
+                DrawOutlinedStringOnMenu(Main.spriteBatch, FontAssets.MouseText.Value, localModsMessage,
+                    bottomRightDrawPos,
                     Color.LightGray, 0f, Vector2.Zero, 1f, SpriteEffects.None, 0f, alphaMult: 0.55f);
-                drawPos.Y += 32;
             }
         }
     }
