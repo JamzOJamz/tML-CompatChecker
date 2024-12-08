@@ -18,6 +18,7 @@
 
     <!-- Publicize assemblies -->
     <ItemGroup>
-        <Publicize Include="tModLoader"/>
+        <Publicize Include="tModLoader" IncludeCompilerGeneratedMembers="false"/>
+        <DoNotPublicize Include="tModLoader:Terraria.UI.UIElement.add_OnMouseOver" />
     </ItemGroup>
 </Project>

@@ -1,22 +1,33 @@
-Ensure your mods work seamlessly together with Compatibility Checker!
+[h2]About[/h2]
+
+Ensure your mods work seamlessly together with Jamz's [b]Compatibility Checker![/b]
 
 This utility mod helps players and developers identify potential incompatibilities between mods, saving time and frustration before starting a playthrough. Powered by a community-driven online database, it provides live reports on the compatibility of your enabled mods and offers suggestions for resolving conflicts.
 
-Features:
+[h2]Features[/h2]
 
-• Online Compatibility Database
+[b]• Online Compatibility Database[/b]
   - Access a comprehensive database of compatibility information for dozens of mods, updated in real-time by the community.
 
-• Multiplayer Compatibility Checks
+[b]• Multiplayer Compatibility Checks[/b]
   - Verify that your mod setup works well in multiplayer environments.
 
-• Recommended Fixes
+[b]• Recommended Fixes[/b]
   - Get suggestions for mods to install that can resolve or mitigate compatibility issues.
 
-• Enabled Mods Overview
+[b]• Enabled Mods Overview[/b]
   - Toggle the option to display a list of your enabled mods directly on the main menu.
 
-• GitHub Issue Integration
+[b]• GitHub Issue Integration[/b]
   - Displays relevant GitHub issues for detected compatibility problems, perfect for developers and technical users.
 
-NOTE: This mod is in an early Beta stage. Bugs and incomplete features may exist. Please report issues and share feedback in Discord: https://discord.gg/FS7kXUgNtR
+Don't forget to leave a like (or maybe even a favorite) if you find this mod helpful!
+
+[img]https://i.imgur.com/ki1CPZe.gif[/img]
+
+[hr][/hr]
+[b][Note][/b]
+This mod is in an early Beta stage. Bugs and incomplete features may exist. Please report issues and share feedback in Discord: https://discord.gg/FS7kXUgNtR
+
+[quote=tModLoader CompatChecker]
+Developed By JamzOJamz[/quote]

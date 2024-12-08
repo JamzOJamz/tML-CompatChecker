@@ -7,6 +7,11 @@ Configs: {
 			Tooltip: If toggled, a list of enabled mods will be shown on the main menu.
 		}
 
+		EnabledModListShowVersions: {
+			Label: Show Mod Versions in Enabled Mods List
+			Tooltip: If toggled, the version of each mod will be shown in the enabled mods list.
+		}
+
 		ShowRecommendedFixes: {
 			Label: Recommend Compatibility Mods
 			Tooltip: Shows the names of suggested mods to fix compatibility issues found by the checker.
@@ -41,4 +46,75 @@ Configs: {
 			Tooltip: Checks if mods are compatible with multiplayer.
 		}
 	}
+}
+
+Errors: {
+	Maintenance:
+		'''
+		The server is currently undergoing maintenance!
+		Please try again later.
+		'''
+	Unknown:
+		'''
+		There was an error while communicating with the server!
+		Please try again later (or using a VPN).
+		'''
+}
+
+UI: {
+	EnabledMods: "[c/99E550:Enabled Mods] [c/A49DAE:(Added by Compatibility Checker)]"
+	MoreMods: ... and {0} more [c/A49DAE:(Hold Shift to View All)]
+	LocalModDescriptor: " [c/A49DAE:(Local)]"
+	BackToMainMenuButton: Back to Main Menu
+	BackToMainMenuTooltip: Click to quickly return to the main menu
+	HelpContributeButton: Click to Help Contribute Data ⛬
+	CompatibilityNoteSmallWidth:
+		'''
+		Note: Compatibility info is suggestive
+		and may be outdated/inaccurate.
+		'''
+	CompatibilityNote: Note: Compatibility info is suggestive and may be outdated/inaccurate.
+	Loading: Loading
+	VerifiedMPCompatibleCount: "{0} {^0:Mod;Mods} Verified Multiplayer Compatible ✓"
+	MultiplayerCompatibleMods: "[c/FFFFFF:Multiplayer Compatible Mods]"
+	MPUnstableCount: "{0} {^0:Mod;Mods} Unstable in Multiplayer ⚠"
+	ModsUnstableInMultiplayer: "[c/FFFFFF:Mods Unstable in Multiplayer]"
+	MPIncompatibleCount: "{0} {^0:Mod;Mods} Known Multiplayer Incompatible ✘"
+	MultiplayerIncompatibleMods: "[c/FFFFFF:Multiplayer Incompatible Mods]"
+	PotentialIssuesCount: "{0} Potential {^0:Issue;Issues} ❗"
+	NoIssues: No Issues Detected! ✓
+	NoChecksEnabled: No Checks Enabled — See Config
+	CheckingMPSupport: "[c/FFFFFF:Checking] [c/BDB8C4:Multiplayer Support]"
+	NoDataLocalModsCount: No Data for {0} Local {^0:Mod;Mods} ❓
+	LocalMods: "[c/FFFFFF:Local Mods (Not From Workshop)]"
+	RecommendedAddons:
+		'''
+
+		  [c/BDB8C4:- Recommended Compatibility Add-ons: 
+		'''
+	RelevantGitHubIssues:
+		'''
+
+		  [c/BDB8C4:- Relevant GitHub Issues: 
+		'''
+	HelpContributeTooltip:
+		'''
+		Found an error or missing info? Help us fix it!
+		[c/7F8CFF:{0}]
+		'''
+	LeftClickShowTmodFile:
+		'''
+
+		[c/BDB8C4:Left click to show .tmod file]
+		'''
+	RightClickOpenModSourceFolder:
+		'''
+
+		[c/BDB8C4:Right click to open mod source folder]
+		'''
+	LeftClickOpenWorkshopPage:
+		'''
+
+		[c/BDB8C4:Left click to open workshop page]
+		'''
 }

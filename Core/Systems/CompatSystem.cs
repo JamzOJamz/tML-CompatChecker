@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using CompatChecker.Helpers;
-using Newtonsoft.Json.Linq;
 using Terraria;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -20,14 +19,14 @@ using Terraria.Social.Base;
 // ReSharper disable PropertyCanBeMadeInitOnly.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global
 
-namespace CompatChecker;
+namespace CompatChecker.Core.Systems;
 
 public class CompatSystem : ModSystem
 {
     /// <summary>
     ///     The environment the mod is currently running in.
     /// </summary>
-    private const Environment ActiveEnvironment = Environment.Development;
+    private const Environment ActiveEnvironment = Environment.Production;
 
     /// <summary>
     ///     The time in hours that the data cache should be kept for before sending a new request.
@@ -39,8 +38,8 @@ public class CompatSystem : ModSystem
         new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };
 
     public static ApiCompatibilityData CompatibilityData { get; private set; }
-    
-    public static string RequestError { get; private set; }
+
+    public static LocalizedText RequestError { get; private set; }
 
     public static Dictionary<ulong, LocalMod> LocalModByID { get; } = new();
 
@@ -53,26 +52,22 @@ public class CompatSystem : ModSystem
         // We handle exceptions in this class
         Logging.IgnoreExceptionContents("CompatChecker.CompatSystem");
 
-        var mods = new List<ApiClientMod>();
-        foreach (var repo in ModOrganizer.WorkshopFileFinder.ModPaths)
+        var apiMods = new List<ApiClientMod>();
+        var enabledWorkshopMods = ModOrganizer.FindMods()
+            .Where(mod => mod.location == ModLocation.Workshop && mod.Enabled).ToList();
+        foreach (var mod in enabledWorkshopMods)
         {
-            var workshopJsonPath = Path.Combine(repo, "workshop.json");
-            if (!File.Exists(workshopJsonPath)) continue;
-            var workshopJson = File.ReadAllText(workshopJsonPath);
-            if (!JObject.Parse(workshopJson).TryGetValue("Publicity", out var value) ||
-                value.ToObject<WorkshopItemPublicSettingId>() != WorkshopItemPublicSettingId.Public) continue;
-            //Mod.Logger.Debug($"Found public workshop mod: {repo}");
-            var tmodPath = Directory.GetFiles(repo, "*.tmod", SearchOption.AllDirectories).LastOrDefault();
-            if (tmodPath == null) continue;
-            //Mod.Logger.Debug($"Found tmod file: {tmodPath}");
-            if (!ModOrganizer.TryReadLocalMod(ModLocation.Workshop, tmodPath, out var mod) || !mod.Enabled ||
-                !ulong.TryParse(repo.Split(Path.DirectorySeparatorChar).Last(), out var id)) continue;
+            var parentDir = ModOrganizer.GetParentDir(mod.modFile.path);
+            var isPublicMod = ModOrganizer.TryReadManifest(parentDir, out var manifest) &&
+                              manifest.publicity == WorkshopItemPublicSettingId.Public;
+            var id = manifest.workshopEntryId;
             Mod.Logger.Info(
                 $"Found enabled workshop mod: {mod.Name} v{mod.Version} v{mod.tModLoaderVersion} (id: {id})");
             WorkshopModNames.Add(mod.Name);
             LocalModByID[id] = mod;
             ModIDByName[mod.Name] = id;
-            mods.Add(new ApiClientMod
+            if (!isPublicMod) continue;
+            apiMods.Add(new ApiClientMod
             {
                 ID = id,
                 Version = mod.Version.ToString(),
@@ -80,10 +75,18 @@ public class CompatSystem : ModSystem
             });
         }
 
+        // If there are no enabled workshop mods, skip the compatibility check
+        if (apiMods.Count == 0)
+        {
+            Mod.Logger.Info("No enabled workshop mods found, skipping compatibility check");
+            CompatibilityData = new ApiCompatibilityData(); // Empty data, not null though
+            return;
+        }
+
         // Convert the request to JSON
         var requestJson = JsonSerializer.Serialize(new ApiCheckCompatibilityRequest
         {
-            Mods = mods,
+            Mods = apiMods,
             IncludeGithub = true,
             IncludeLasts = false
         }, _jsonSerializerOptions);
@@ -122,7 +125,7 @@ public class CompatSystem : ModSystem
                     }
                 }
             }
-        
+
         // Get private static field using reflection in Logging class
         var ignoreContents = Logging.ignoreContents;
         if (ignoreContents != null && !ignoreContents.Contains("System.Net.Http.HttpRequestException"))
@@ -147,7 +150,7 @@ public class CompatSystem : ModSystem
             HttpResponseMessage response = null;
             try
             {
-                Mod.Logger.Debug($"Sending request to {GetAPIEndpoint()}/api/check-compatibility");
+                //Mod.Logger.Debug($"Sending request to {GetAPIEndpoint()}/api/check-compatibility");
                 response = await client.PostAsync(GetAPIEndpoint() + "/api/check-compatibility", content);
 
                 // Ensure the request was successful
@@ -170,16 +173,24 @@ public class CompatSystem : ModSystem
                 if (compatibilityResponse.Status == "success")
                     CompatibilityData = compatibilityResponse.Data;
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                RequestError = response is { StatusCode: HttpStatusCode.ServiceUnavailable } 
-                    ? "The server is currently undergoing maintenance!\nPlease try again later."
-                    : "There was an error while communicating with the server!\nPlease try again later.";
+                RequestError = response is { StatusCode: HttpStatusCode.ServiceUnavailable }
+                    ? Language.GetText("Mods.CompatChecker.Errors.Maintenance")
+                    : Language.GetText("Mods.CompatChecker.Errors.Unknown");
 
-                if (!string.IsNullOrEmpty(RequestError))
+                if (response is { StatusCode: HttpStatusCode.ServiceUnavailable })
+                {
+                    RequestError = Language.GetText("Mods.CompatChecker.Errors.Maintenance");
+                }
+                else
+                {
+                    RequestError = Language.GetText("Mods.CompatChecker.Errors.Unknown");
+                    Mod.Logger.Error(e.Message);
                     Mod.Logger.Error($"Failed to send request to API: {RequestError}");
+                }
             }
-            
+
             //ignoreContents?.Remove("System.Net.Http.HttpRequestException");
         });
     }
@@ -193,7 +204,7 @@ public class CompatSystem : ModSystem
     {
         return ActiveEnvironment == Environment.Development
             ? "http://localhost:3000"
-            : "https://compat-checker.tmod.page";
+            : "https://compat-knife-api-production.up.railway.app";
     }
 
     private class ApiClientMod
