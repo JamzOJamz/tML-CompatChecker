@@ -32,7 +32,7 @@ public class CompatSystem : ModSystem
     ///     The time in hours that the data cache should be kept for before sending a new request.
     ///     This is only used when <see cref="ActiveEnvironment" /> is set to <see cref="Environment.Production" />.
     /// </summary>
-    private const double CacheTimeHours = 0.25; // 15 minutes for now
+    private const double CacheTimeHours = 0.5; // 30 minutes for now
 
     private readonly JsonSerializerOptions _jsonSerializerOptions =
         new() { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower };

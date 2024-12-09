@@ -17,6 +17,11 @@ Configs: {
 			Tooltip: Показывает названия предлагаемых модов для исправления проблем совместимости, обнаруженных средством проверки.
 		}
 
+		ShowModDonationLink: {
+			// Label: Show Mod Donation Link
+			// Tooltip: If toggled, the mod's donation link will be shown in the mod info panel.
+		}
+
 		DisplayGitHubIssues: {
 			Label: Отображение проблем на GitHub
 			Tooltip:
@@ -122,4 +127,10 @@ UI: {
 
 		[c/BDB8C4:ЛКМ, чтобы открыть страницу в Мастерской]
 		'''
+	/* DonationTooltip:
+		'''
+		Support the mod developer and help keep this mod alive!
+		[c/BDB8C4:Stay updated on my latest projects and updates here!]
+		[c/BDB8C4:(You can disable this prompt in the Config.)]
+		''' */
 }

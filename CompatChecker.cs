@@ -24,6 +24,7 @@ public class CompatChecker : Mod
     }*/
 
     private const string DiscordURL = "https://discord.gg/F9bThEE9FV"; // Jamz's Mods, #cc-chat
+    public const string KoFiURL = "https://ko-fi.com/jamzojamz"; // Ko-fi link for donations
 
     private readonly Item _fakeItem = new();
     private bool _lastHoveringBackToMainMenuText;
@@ -452,7 +453,7 @@ public class CompatChecker : Mod
             }
 
             var potentialIssuesCount = compatConfig.CheckMultiplayerCompat
-                ? data.Individual?.MPUnstable?.Length ?? 0 + data.Individual?.MPIncompatible?.Length ?? 0
+                ? (data.Individual?.MPUnstable?.Length ?? 0) + (data.Individual?.MPIncompatible?.Length ?? 0)
                 : 0;
             var potentialIssuesMessage = potentialIssuesCount > 0
                 ? Language.GetTextValue("Mods.CompatChecker.UI.PotentialIssuesCount", potentialIssuesCount)

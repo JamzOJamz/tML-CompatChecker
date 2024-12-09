@@ -3,12 +3,16 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using CompatChecker.Content.Configs;
 using CompatChecker.Helpers;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using Steamworks;
 using Terraria;
 using Terraria.Audio;
+using Terraria.GameContent;
 using Terraria.ID;
 using Terraria.Localization;
 using Terraria.ModLoader;
@@ -42,15 +46,23 @@ public class PatchSystem : ModSystem
                     conciseModListType.GetMethod("<Load>b__1_1", BindingFlags.NonPublic | BindingFlags.Instance);
                 if (conciseModListDelegateMethod != null)
                     // ReSharper disable InconsistentNaming
-                    MonoModHooks.Add(conciseModListDelegateMethod, (Action<object, object, UIMods> _, object _, object _, UIMods self) =>
-                        // ReSharper restore InconsistentNaming
-                    {
-                        self.modItemsTask = Task.Run(() => {
-                            var mods = ModOrganizer.FindMods(logDuplicates: true);
-                            return mods.Select(mod => Activator.CreateInstance(conciseUiModItemType, mod) as UIModItem).ToList();
-                        }, self._cts.Token);
-                    });
+                    MonoModHooks.Add(conciseModListDelegateMethod,
+                        (Action<object, object, UIMods> _, object _, object _, UIMods self) =>
+                            // ReSharper restore InconsistentNaming
+                        {
+                            self.modItemsTask = Task.Run(() =>
+                            {
+                                var mods = ModOrganizer.FindMods(true);
+                                return mods.Select(mod =>
+                                    Activator.CreateInstance(conciseUiModItemType, mod) as UIModItem).ToList();
+                            }, self._cts.Token);
+                        });
             }
+        }
+        else
+        {
+            MonoModHooks.Add(typeof(UIModItem).GetMethod("DrawSelf", BindingFlags.Instance | BindingFlags.NonPublic),
+                UIModItem_DrawSelf_Detour); // Patch to show Ko-fi link in Compatibility Checker's UIModItem
         }
     }
 
@@ -154,5 +166,43 @@ public class PatchSystem : ModSystem
         {
             MonoModHooks.DumpIL(ModContent.GetInstance<CompatChecker>(), il);
         }
+    }
+
+    private static void UIModItem_DrawSelf_Detour(Action<UIModItem, SpriteBatch> orig, UIModItem self,
+        SpriteBatch spriteBatch)
+    {
+        orig(self, spriteBatch);
+        
+        if (!ModContent.GetInstance<CompatConfig>().ShowModDonationLink)
+            return;
+
+        var mod = self._mod;
+        if (mod.Name != nameof(CompatChecker)) return;
+
+        var drawingExtraText = mod.properties.side != ModSide.Server &&
+                               (mod.Enabled != self._loaded || self._configChangesRequireReload);
+        if (drawingExtraText)
+            return; // Don't draw if tModLoader is already drawing extra text here, e.g. "Reload Required"
+
+        var innerDimensions = self.GetInnerDimensions();
+        var drawPos =
+            new Vector2(
+                innerDimensions.X + 10f + self._modIconAdjust + self._uiModStateText.Width.Pixels + self.left2ndLine,
+                innerDimensions.Y + 45f);
+        var brightDiscoColor =
+            new Color(Main.DiscoR + 80, Main.DiscoG + 80, Main.DiscoB + 80, 255); // Brighten the disco color
+        var donationText = CompatChecker.KoFiURL + " \u2764";
+        var donationTextSize = FontAssets.MouseText.Value.MeasureString(donationText);
+        if (Main.MouseScreen.Between(drawPos, drawPos + donationTextSize))
+        {
+            Main.LocalPlayer.mouseInterface = true;
+            UICommon.TooltipMouseText(Language.GetTextValue("Mods.CompatChecker.UI.DonationTooltip"));
+            if (Main.mouseLeft && Main.mouseLeftRelease)
+            {
+                SoundEngine.PlaySound(SoundID.MenuOpen);
+                Utils.OpenToURL(CompatChecker.KoFiURL);
+            }
+        }
+        Utils.DrawBorderString(spriteBatch, donationText, drawPos, brightDiscoColor);
     }
 }

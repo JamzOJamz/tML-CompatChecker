@@ -19,6 +19,8 @@ public class CompatConfig : ModConfig
     public bool EnabledModListShowVersions { get; set; }
 
     [DefaultValue(true)] public bool ShowRecommendedFixes { get; set; }
+    
+    [DefaultValue(true)] public bool ShowModDonationLink { get; set; }
 
     [Header("DeveloperOptions")]
     [DefaultValue(false)]
