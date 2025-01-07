@@ -4,6 +4,8 @@ Ensure your mods work seamlessly together with Jamz's [b]Compatibility Checker![
 
 This utility mod helps players and developers identify potential incompatibilities between mods, saving time and frustration before starting a playthrough. Powered by a community-driven online database, it provides live reports on the compatibility of your enabled mods and offers suggestions for resolving conflicts.
 
+[url=https://ko-fi.com/jamzojamz]Ko-fi (Donate)[/url] | [url=https://github.com/JamzOJamz/tML-CompatChecker]GitHub (Source Code)[/url]
+
 [h2]Features[/h2]
 
 [b]• Online Compatibility Database[/b]
