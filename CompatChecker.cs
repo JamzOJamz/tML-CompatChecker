@@ -47,13 +47,14 @@ public class CompatChecker : Mod
         }
 
         var hasOverhaul = ModLoader.HasMod("TerrariaOverhaul");
+        var hasTerramon = ModLoader.HasMod("Terramon");
         var enabledModsMessage =
             Language.GetTextValue("tModLoader.MenuModsEnabled", Math.Max(0, ModLoader.Mods.Length - 1)) + " \u2611";
         var enabledModsMessageSize = FontAssets.MouseText.Value.MeasureString(enabledModsMessage);
 
-        // Set draw pos to right corner instead of left if Overhaul is loaded
+        // Set draw pos to right corner instead of left if Terramon or Overhaul is loaded
         var drawPos = new Vector2(9, 12);
-        if (hasOverhaul)
+        if (hasOverhaul || hasTerramon)
             drawPos.X = Main.screenWidth - 12 - enabledModsMessageSize.X;
         else if (Main.showFrameRate)
             drawPos.Y += 22;
