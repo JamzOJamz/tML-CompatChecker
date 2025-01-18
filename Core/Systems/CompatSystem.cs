@@ -9,6 +9,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using CompatChecker.Content.Commands;
+using CompatChecker.Content.Configs;
 using CompatChecker.Helpers;
 using Terraria;
 using Terraria.Localization;
@@ -49,6 +51,10 @@ public class CompatSystem : ModSystem
 
     public override void OnModLoad()
     {
+        // Manually load DetoursCommand if it is enabled in the config
+        if (ModContent.GetInstance<CompatConfig>().EnableDetoursCommand)
+            Mod.AddContent(new DetoursCommand());
+        
         // We handle exceptions in this class
         Logging.IgnoreExceptionContents("CompatChecker.CompatSystem");
 

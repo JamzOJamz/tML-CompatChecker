@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using CompatChecker.Content.Configs;
 using CompatChecker.Core.Systems;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoMod.RuntimeDetour;
 using ReLogic.Graphics;
 using ReLogic.OS;
 using Terraria;
@@ -19,9 +21,17 @@ namespace CompatChecker;
 
 public class CompatChecker : Mod
 {
-    /*public CompatChecker() // Runs before any mod is loaded
+    public static List<DetourInfo> Detours { get; private set; } = [];
+    
+    static CompatChecker() // Runs before any mod is loaded
     {
-    }*/
+        DetourManager.DetourApplied += DetourApplied;
+    }
+    
+    private static void DetourApplied(DetourInfo info)
+    {
+        Detours.Add(info);
+    }
 
     private const string DiscordURL = "https://discord.gg/F9bThEE9FV"; // Jamz's Mods, #cc-chat
     public const string KoFiURL = "https://ko-fi.com/jamzojamz"; // Ko-fi link for donations
@@ -34,6 +44,11 @@ public class CompatChecker : Mod
     public override void Load()
     {
         On_Main.DrawVersionNumber += MainDrawVersionNumber_Detour;
+
+        // No need to track or store detours if the module is disabled
+        if (ModContent.GetInstance<CompatConfig>().EnableDetoursCommand) return;
+        DetourManager.DetourApplied -= DetourApplied;
+        Detours = null;
     }
 
     private void MainDrawVersionNumber_Detour(On_Main.orig_DrawVersionNumber orig, Color menucolor, float upbump)

@@ -1,3 +1,15 @@
+Commands: {
+	Detours: {
+		// Description: Analyzes applied MonoMod detours
+		/* Usage:
+			'''
+			/detours list - Lists all detours applied by all mods
+			/detours conflicting - Lists methods with potentially conflicting detours
+			/detours count - Outputs the total number of detours applied by all mods
+			''' */
+	}
+}
+
 Configs: {
 	CompatConfig: {
 		DisplayName: Персональные настройки
@@ -49,6 +61,11 @@ Configs: {
 		CheckMultiplayerCompat: {
 			Label: Поддержка мультиплеера
 			Tooltip: Проверяет совместимость модов с режимом мультиплеера.
+		}
+
+		EnableDetoursCommand: {
+			// Label: Analyze MonoMod Detours
+			// Tooltip: Enables the use of the /detours chat command.
 		}
 	}
 }

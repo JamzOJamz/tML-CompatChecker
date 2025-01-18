@@ -1,3 +1,15 @@
+Commands: {
+	Detours: {
+		Description: Analyzes applied MonoMod detours
+		Usage:
+			'''
+			/detours list - Lists all detours applied by all mods
+			/detours conflicting - Lists methods with potentially conflicting detours
+			/detours count - Outputs the total number of detours applied by all mods
+			'''
+	}
+}
+
 Configs: {
 	CompatConfig: {
 		DisplayName: Client Settings
@@ -24,20 +36,12 @@ Configs: {
 
 		DisplayGitHubIssues: {
 			Label: Display GitHub Issues
-			Tooltip:
-				'''
-				Whether to list relevant GitHub issues related to detected compatibility problems.
-				[c/F2A754:For mod developers and more technical users]
-				'''
+			Tooltip: Whether to list relevant GitHub issues related to detected compatibility problems.
 		}
 
 		ListLocalMods: {
 			Label: List Local Mods
-			Tooltip:
-				'''
-				Toggles the display of local mods (mods not from the Steam Workshop) in the Mods List UI.
-				[c/F2A754:For mod developers and more technical users]
-				'''
+			Tooltip: Toggles the display of local mods (mods not from the Steam Workshop) in the Mods List UI.
 		}
 
 		Headers: {
@@ -49,6 +53,11 @@ Configs: {
 		CheckMultiplayerCompat: {
 			Label: Multiplayer Support
 			Tooltip: Checks if mods are compatible with multiplayer.
+		}
+
+		EnableDetoursCommand: {
+			Label: Analyze MonoMod Detours
+			Tooltip: Enables the use of the /detours chat command.
 		}
 	}
 }
