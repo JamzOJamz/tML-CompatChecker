@@ -1,6 +1,5 @@
 displayName = Compatibility Checker (Beta)
 author = JamzOJamz
-homepage = https://discord.gg/FS7kXUgNtR
-version = 0.1.4.3
+version = 0.1.4.4
 side = Client
 buildIgnore = */_Unused/*
