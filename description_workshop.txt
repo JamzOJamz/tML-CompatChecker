@@ -29,7 +29,8 @@ Don't forget to leave a like (or maybe even a favorite) if you find this mod hel
 
 [hr][/hr]
 [b][Note][/b]
-This mod is in an early Beta stage. Bugs and incomplete features may exist. Please report issues and share feedback in Discord: https://discord.gg/FS7kXUgNtR
+This mod is in an early Beta stage. Bugs and incomplete features may exist.
 
 [quote=tModLoader CompatChecker]
-Developed By JamzOJamz[/quote]
+Developed By JamzOJamz
+Mod icon by Terra[/quote]

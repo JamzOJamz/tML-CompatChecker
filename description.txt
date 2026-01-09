@@ -19,4 +19,4 @@ Features:
 • GitHub Issue Integration
   - Displays relevant GitHub issues for detected compatibility problems, perfect for developers and technical users.
 
-NOTE: This mod is in an early Beta stage. Bugs and incomplete features may exist. Please report issues and share feedback in Discord: https://discord.gg/FS7kXUgNtR
+NOTE: This mod is in an early Beta stage. Bugs and incomplete features may exist.
